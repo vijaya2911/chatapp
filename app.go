@@ -10,7 +10,11 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	go abortServer(cancel)
-	chatSer := chatserver.NewChatServer("localhost", "5555", ctx)
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "5555"
+	}
+	chatSer := chatserver.NewChatServer("localhost", port, ctx)
 	errc := chatSer.Start()
 	err:=<-errc
 	fmt.Printf("endGame: chatServer error=%s\n",err)
