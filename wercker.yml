@@ -3,7 +3,11 @@
 # If you want Google's container you would reference google/golang
 # Read more about containers on our dev center
 # https://devcenter.wercker.com/overview-and-core-concepts/containers/
-box: golang
+box:
+  id: golang
+  ports:
+    - "5555"
+
 # This is the build pipeline. Pipelines are the core of wercker
 # Read more about pipelines on our dev center
 # https://devcenter.wercker.com/development/pipelines/
@@ -16,6 +20,14 @@ box: golang
 
     # - mongo
     # https://devcenter.wercker.com/administration/services/examples/mongodb/
+dev:
+  steps:
+    - internal/watch:
+        code: |
+          go get -u github.com/vijaya2911/server
+          go build ./...
+          ./source
+        reload: true
 build:
   # The steps that will be executed on build
   # Steps make up the actions in your pipeline
@@ -44,3 +56,21 @@ build:
         code: |
           go test ./...
 
+deploy:
+  steps:
+    - internal/docker-push:
+        username: vijaya2911
+        password: Vango12345!
+        cmd: /pipeline/source/chatapp
+        port: "5555"
+        tag: latest
+        repository: vijaya2911/chatapp
+        registry: https://registry.hub.docker.com
+
+    - cng/cf-deploy:
+        api: $API
+        user: $USER
+        password: $PASSWORD
+        org: $ORG
+        space: $SPACE
+        appname: wercker-step-chatapp
